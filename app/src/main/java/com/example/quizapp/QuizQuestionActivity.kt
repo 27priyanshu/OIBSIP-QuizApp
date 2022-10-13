@@ -1,6 +1,7 @@
 package com.example.quizapp
 
 import android.annotation.SuppressLint
+import android.content.Intent
 import android.graphics.Color
 import android.graphics.Typeface
 import androidx.appcompat.app.AppCompatActivity
@@ -17,6 +18,8 @@ class QuizQuestionActivity : AppCompatActivity(), View.OnClickListener {
     private var mCurrentPosition: Int = 1
     private var mQuestionList:ArrayList<Question>? = null
     private var mSelectedOptionPosition : Int = 0
+    private var mUserName : String? = null
+    private var mCorrectAnswer : Int = 0
 
     private var progressBar: ProgressBar? = null
     private var tvProgress : TextView? = null
@@ -33,6 +36,7 @@ class QuizQuestionActivity : AppCompatActivity(), View.OnClickListener {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_quiz_question)
 
+        mUserName= intent.getStringExtra(Constant.USER_NAME)
 
         progressBar = findViewById(R.id.progressBar)
         tvProgress = findViewById(R.id.tv_progress)
@@ -57,8 +61,16 @@ class QuizQuestionActivity : AppCompatActivity(), View.OnClickListener {
     }
 
     private fun setQuestion() {
-        defaultOptionView()
         val question: Question =mQuestionList!![mCurrentPosition - 1]
+
+        defaultOptionView()
+
+        if(mCurrentPosition == mQuestionList!!.size){
+            btnSubmit?.text = "Submit"
+        }else{
+            btnSubmit?.text = "FINISH"
+        }
+
         progressBar?.progress = mCurrentPosition
         tvProgress?.text = "$mCurrentPosition / ${progressBar?.max}"
         ivImage?.setImageResource(question.image)
@@ -68,11 +80,7 @@ class QuizQuestionActivity : AppCompatActivity(), View.OnClickListener {
         tvOptionThree?.text = question.optionThree
         tvOptionFour?.text = question.optionFour
 
-        if(mCurrentPosition == mQuestionList!!.size){
-            btnSubmit?.text = "FINISH"
-        }else{
-            btnSubmit?.text = "SUBMIT"
-        }
+
     }
 
     private fun defaultOptionView(){
@@ -145,7 +153,13 @@ class QuizQuestionActivity : AppCompatActivity(), View.OnClickListener {
                             setQuestion()
                         }
                         else -> {
-                            Toast.makeText(this, "You made it to the end", Toast.LENGTH_SHORT).show()
+                            val intent = Intent(this,ResultActivity::class.java)
+                            intent.putExtra(Constant.USER_NAME,mUserName)
+                            intent.putExtra(Constant.CORRECT_ANSWER,mCorrectAnswer)
+                            intent.putExtra(Constant.TOTAL_QUESTIONS, mQuestionList?.size)
+                            startActivity(intent)
+                            finish()
+
                         }
                     }
                 }else{
@@ -153,10 +167,13 @@ class QuizQuestionActivity : AppCompatActivity(), View.OnClickListener {
                     if(question!!.correctAnswer != mSelectedOptionPosition){
                         answerView(mSelectedOptionPosition, R.drawable.wrong_option_border_bg)
                     }
+                    else{
+                        mCorrectAnswer++
+                    }
                     answerView(question.correctAnswer, R.drawable.correct_option_border_bg)
 
                     if(mCurrentPosition == mQuestionList!!.size){
-                        btnSubmit?.text = "FINISH"
+                        btnSubmit?.text = "Finish"
                     }else{
                         btnSubmit?.text = "GO TO NEXT QUESTION"
                     }
